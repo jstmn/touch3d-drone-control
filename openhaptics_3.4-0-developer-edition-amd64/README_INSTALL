@@ -1,0 +1,48 @@
+###############################################################
+OpenHaptics SDK Developer Edition - version 3.4-0- RELEASE
+###############################################################
+
+Install Instructions:
+=====================
+Please unzip the tar.gz file named "openhaptics_3.4-0-developer-edition-amd64.tar.gz" by right clicking and selecting "extract here" or by running the following command from the terminal. 
+
+tar zxvf openhaptics_3.4-0-developer-edition-amd64.tar.gz 
+
+Now go to the path of the extracted package. 
+
+cd openhaptics_3.4-0-developer-edition-amd64/
+
+Now please run the script "install" found in the extracted folder as root from the terminal to install the software.  
+
+sudo ./install
+
+Software Install folder:
+======================== 
+
+/opt/OpenHaptics/Developer/3.4-0/
+
+Content installed: 
+=================
+
+OpenHaptics examples: /opt/OpenHaptics/Developer/3.4-0/examples/
+Quickhaptics examples: /opt/OpenHaptics/Developer/3.4-0/QuickHaptics/examples/
+Utility lib source: /opt/OpenHaptics/Developer/3.4-0/libsrc/
+
+
+Hardware Documentation: 
+=======================
+The documentation for OpenHaptics SDK like the programmers guide and reference manual can be found in the following location. 
+
+/opt/OpenHaptics/Developer/3.4-0/doc
+
+
+Dependencies to compile/run OpenHaptics applications:
+=====================================================
+ncurses (libncurses5-dev)
+freeglut (freeglut3)
+build-essential
+
+Licensing:
+==========
+The Developer Edition does not require a license for development and is free for anyone to download and develop haptics-enabled
+applications. Commercial distribution of any application developed using the Developer Edition is prohibited by the Licensing Terms which are shown during installation and can be found in the installation directory. 3D Systems must be contacted to discuss the terms for commercial distribution.

@@ -1,0 +1,107 @@
+#!/bin/bash -e
+# Check if user has root privileges or running as root. 
+
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
+#Get location of the the script file. 
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+# Print Warning
+echo ""
+echo -n "THE COMPUTER MUST REBOOT AFTER THE INSTALLATION IN ORDER FOR THE SOFTWARE TO WORK PROPERLY. PLEASE SAVE ANY OPEN FILES OTHERWISE YOU WILL LOSE UNSAVED DATA."
+echo ""
+echo ""
+echo "** Please make sure that you have installed the following dependencies before compiling OpenHaptics applications:"
+echo "	- ncurses  (libncurses5-dev)"
+echo "	- freeglut (freeglut3)"
+echo "	- build-essential"
+echo ""
+echo ""
+while :
+do
+	echo "The software will be installed to path : /opt/OpenHaptics/Developer/3.4-0/"	
+	echo "Do you want to continue? (y/n): "
+	read con
+	echo ""
+
+	if [ "$con" = "y" -o "$con" = "Y" ]; then
+		
+		
+		#copy files to opt folder
+		echo "COPYING SYSTEM FILES"
+		
+		sudo cp -R $DIR/opt/* /opt
+		sudo cp -R $DIR/usr/lib/* /usr/lib
+		sudo cp -R $DIR/usr/include/* /usr/include
+
+		#Create symbolic links
+		echo ""
+
+		ln -sfn /usr/lib/libHD.so.3.4.0 /usr/lib/libHD.so.3.4
+		ln -sfn /usr/lib/libHD.so.3.4.0 /usr/lib/libHD.so
+
+		ln -sfn /usr/lib/libHL.so.3.4.0 /usr/lib/libHL.so.3.4
+		ln -sfn /usr/lib/libHL.so.3.4.0 /usr/lib/libHL.so
+
+		ln -sfn /usr/lib/libQH.so.3.4.0 /usr/lib/libQH.so.3.4
+		ln -sfn /usr/lib/libQH.so.3.4.0 /usr/lib/libQH.so
+
+		ln -sfn /usr/lib/libQHGLUTWrapper.so.3.4.0 /usr/lib/libQHGLUTWrapper.so.3.4
+		ln -sfn /usr/lib/libQHGLUTWrapper.so.3.4.0 /usr/lib/libQHGLUTWrapper.so
+		
+		sudo chmod -R 777 /opt/OpenHaptics
+
+		echo "DONE!"
+		echo ""
+		
+		#Set path for OH_SDK_BASE
+
+		echo -n "SETTING ENVIRONMENT VARIABLES ..... "
+     		echo "export OH_SDK_BASE=/opt/OpenHaptics/Developer/3.4-0" > /etc/profile.d/openhaptics.sh
+
+		echo "DONE!"
+		echo ""
+		echo "IMPORTANT NOTE: The following dependencies are needed to compile OpenHaptics SDK examples. Please make sure they are installed on your system. "
+		echo "1. freeglut3-dev"
+		echo "2. libncurses5-dev"
+		echo "3. zlib1g-dev"
+
+		echo "Please reboot the computer before using Geomagic Touch Device Driver software. "
+		echo "Press ANY key to RESTART now or 'q' to cancel" 
+
+		read d
+
+		if [ "$d" = "q" -o "$d" = "Q" ]; then
+			echo ""
+			echo "Restart aborted."
+			echo ""
+			echo "Please reboot the computer before using Openhaptics SDK. "
+			echo ""
+			break
+		else
+			echo ".... restarting"
+
+			sudo reboot
+			
+		fi
+
+	elif [ "$con" = "n" -o "$con" = "N" ]; then
+		echo "Installation aborted."
+		echo ""
+		break
+	else
+		echo "Invalid key."
+		echo ""
+	fi
+done
+
+#install
+

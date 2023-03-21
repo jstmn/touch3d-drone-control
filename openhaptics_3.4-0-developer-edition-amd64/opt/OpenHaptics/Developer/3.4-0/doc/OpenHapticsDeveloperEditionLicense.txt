@@ -1,0 +1,120 @@
+OpenHaptics™ Developer Edition  
+License Agreement 
+ 
+PLEASE READ THE FOLLOWING SOFTWARE LICENSE AGREEMENT (THE "LICENSE") 
+CAREFULLY. BELOW YOU WILL BE ASKED TO ACCEPT THE TERMS AND CONDITIONS OF 
+THE LICENSE.   YOU MUST ACCEPT TO DOWNLOAD 
+OPENHAPTICS™ DEVELOPER EDITION (THE “SOFTWARE”).  BY ACCEPTING, YOU (THE 
+"AUTHORIZED USER") REPRESENT AND CERTIFY THAT YOU ARE A SOFTWARE DEVELOPER WHO HAS PURCHASED PRODUCTS FROM 3DSystems 
+ENTITLING SUCH INDIVIDUALS TO USE THE OPENHAPTICS 
+DEVLOPMENT KIT (AN “ELIGIBLE SOFTWARE DEVELOPER”).  THIS LICENSE IS A 
+LEGAL AND ENFORCEABLE AGREEMENT BY AND BETWEEN 3DSystems AND THE AUTHORIZED 
+USER.  BY ACCEPTING THIS LICENSE, AUTHORIZED USER AGREES TO ACCEPT ALL OF THE 
+TERMS AND CONDITIONS IN THIS LICENSE.   
+ 
+THE AUTHORIZED USER MAY NOT USE, COPY, MODIFY, DISTRIBUTE OR TRANSFER THE 
+SOFTWARE, EXCEPT AS EXPRESSLY PROVIDED IN THE LICENSE. 
+ 
+1.  License to Use. Subject to the terms and conditions of this License, commencing upon download 
+of the Software, 3DSystems grants to Authorized User a personal, non-exclusive, non-transferable (except for the 
+limited right to distribute derivative works, as outlined below), revocable, limited license to install and use 
+the Software solely for its own internal software development Use.  "Software Development Use" means Authorized User’s 
+non-commercial, personal, educational, or research use of the Software solely for the purposes of 
+education, research, design, development, evaluation or testing, but not for production use or for 
+deployment or use in a production or commercial environment or any manner that would result in direct or 
+indirect financial benefit including use of derivative works .
+  
+2.  Limitations on Use.  Except as expressly permitted by 3DSystems, the Authorized User may not use, 
+copy, modify, or distribute the Software, or any copy, adaptation, transcription, or merged portion thereof.  
+Without the prior written consent of 3DSystems, the Software may only be used with 3DSystems Touch® hardware 
+or other 3DSystems branded hardware; the use of any other haptics hardware is specifically prohibited. The 
+Authorized User may not lease, rent, sell, sub-license, transfer, or distribute, except to the extent expressly 
+permitted by applicable law and to the extent that 3DSystems is not permitted by that applicable law to exclude or 
+limit such rights.  The Authorized User shall be permitted to create and distribute derivative works, 
+provided that (a) any such distribution is pursuant to a commercial license agreement and applicable fees 
+and royalties whose terms are no less restrictive than the terms of this License; (b) any such distribution is 
+to another user who is also authorized to download the Software by virtue of its affiliation with an Eligible 
+Software Developer; and (c) such derivative work (i) shall not offer substantially equivalent or similar 
+functionality to that provided by any 3DSystems product, or otherwise compete with any 3DSystems product including 
+haptic software toolkits, voxel modelers;, (ii) shall contain a readable copy of the 3DSystems attribution notices and (iii) shall 
+constitute a substantial modification of the Software and (d) such derivative work shall not directly or 
+indirectly result in financial benefit to the Authorized User. The Authorized User shall not make copies of 
+the Software.  The Authorized User shall not alter or remove any proprietary and/or legal notices, 
+labels or trademarks of 3DSystems or its licensors on the Software. This License does not grant permission to 
+use the trade names, trademarks, service marks, or product names of 3DSystems, except as required for reasonable 
+and customary use in describing the origin of the Software. No license is granted to Licensee for any 
+purpose other than set forth in Section 1.   
+ 
+3.  Ownership.  The Software is owned by 3DSystems or its licensors and is protected by US and 
+international patent and copyright laws and international treaties.  Rights not expressly granted are reserved 
+to 3DSystems and its licensors.  Title, ownership rights, and intellectual property rights in and to the Software and 
+all copies thereof shall remain in 3DSystems or its licensors.  Authorized User shall not take any action (a) 
+inconsistent with such title or (b) inconsistent with the rights of 3DSystems in its entire intellectual property portfolio. 
+No rights in and to the Software, by implication or estoppel, are granted and/or transferred to the 
+Authorized User except as explicitly provided for in this License. Unauthorized use, copying or distribution 
+of the Software, or failure to comply with this License, will result in automatic termination of the License 
+and will make other legal remedies available to 3DSystems.
+ 
+4.  No Warranty.  Unless required by applicable law, 3DSystems provides the Software on an "AS IS" 
+BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied, 
+including, without limitation, any warranties  or conditions of TITLE, NON-INFRINGEMENT, 
+MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. Authorized User is solely 
+responsible for determining the appropriateness of using or redistributing the Software or any derivative 
+work and assumes any risks associated with its exercise of permissions under this License.    
+ 
+5.  No Technical Support.  3DSystems will not provide any support services beyond that which is provided 
+on the DeveloperEdition area of the Developer Support Center on the 3DSystems Web site.  
+ 
+6.  Liability.  In no event and under no legal theory, whether in tort (including negligence), contract, 
+or otherwise, unless required by applicable law (such as deliberate and grossly negligent acts), shall 3DSystems be 
+liable to Authorized User for damages, including any direct, indirect, special, incidental, or consequential 
+damages of any character arising as a result of this License or out of the use or inability to use the Software 
+(including but not limited to damages for loss of goodwill, work stoppage, computer failure or malfunction, 
+or any and all other damages or losses), even if 3DSystems has been advised of the possibility of such damages.  
+Authorized User assumes the entire responsibility for the selection and use of the Software, the output 
+thereof, and for decisions made and actions taken based thereon and agrees to indemnify, defend, and hold 
+harmless 3DSystems and its directors, officers, employees and agents from and against any and all claims, suits, 
+proceedings and actions brought or threatened against 3DSystems that in any way relate to, arise from or result 
+from any such decisions and/or actions. 
+ 
+7.  Termination.   This License is effective for one year from the date of your registration. The 
+Authorized User may terminate this License at any time by destroying all copies of the Software. Upon 
+termination, the Authorized User must destroy all copies of Software.  The Authorized User's license to use 
+the Software will terminate immediately without notice from 3DSystems if the Authorized User fails to comply 
+with any provision of this License. If the Authorized User institutes litigation against 3DSystems or its licensors 
+(including a cross-claim or counterclaim in a lawsuit) alleging that the Software or a any work incorporated 
+within the Software constitutes direct or contributory infringement, then any licenses granted to Authorized 
+User under this License shall terminate as of the date such litigation is filed. 
+ 
+8.  Export.  This Software is licensed for use in the US and its territories, or in any other country to 
+which it is legally exported.  The Authorized User  represents and certifies that its acquisition of the 
+Software is in compliance with all applicable US laws governing export, destination, ultimate end user and 
+other matters (the “Export Laws”). Authorized User agrees not to take any action which is not in 
+compliance with the Export Laws. 
+ 
+9.  US Government Restricted Rights.  The Software is provided with RESTRICTED RIGHTS. 
+Use, duplication, or disclosure by the U.S. Government or its contractors is subject to restrictions as set 
+forth in subparagraph (c)(1)(ii) of the Rights in Technical Data and Computer Software clause at DFARS 
+252.227-7013, or any successor regulation or as set forth in the particular department or agency regulations 
+or rules which provide 3DSystems or its licensors with protection equivalent to or greater than that clause. 
+ 
+10.  Governing Law.  This License is made under and will be governed by the substantive laws of the 
+United States and The Commonwealth of Massachusetts,  excluding any of its choice of law provisions.  
+The state and federal courts in  The Commonwealth of Massachusetts shall have exclusive venue and 
+jurisdiction for any disputes, and the parties hereby submit to personal jurisdiction in such courts. 
+Authorized User agrees that its breach of the provisions of this License will cause irreparable injury to 3DSystems 
+for which 3DSystems will not have an adequate remedy at law and that 3DSystems shall be entitled to injunctive relief, as 
+well as any other available remedy at law or in equity. 
+
+ 11.  General.  This License is the entire agreement between the Authorized User and 3DSystems relating in 
+any way to the Software. If any provision of this Agreement is declared invalid, illegal, or unenforceable, 
+then such provision will be interpreted or reformed to the extent reasonably required to render the same 
+valid, enforceable and consistent with the original intent underlying such provision or, if not possible, 
+severed from this Agreement. All other terms, conditions and provisions of this Agreement shall remain in 
+full force and effect.  Failure to enforce any of the terms or conditions of this License shall not constitute a 
+waiver of any such terms or conditions, or of any other terms or conditions. This License and the rights and 
+benefits hereunder shall inure to the benefit of the parties and their respective successors and assigns.  
+Authorized User cannot assign, transfer or delegate without the prior written consent of 3DSystems. No variation 
+of the terms of this License or any different terms will be enforceable against 3DSystems unless signed in writing 
+by an officer of 3DSystems.
+ 
