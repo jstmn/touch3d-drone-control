@@ -2,7 +2,7 @@ CXX=g++
 CXXFLAGS+=-W -fexceptions -O2 -DNDEBUG -Dlinux
 LIBS+=-lHD -lHDU -lglut -lGL -lGLU -lrt -lncurses -lstdc++ -lm
 
-TARGET=CoulombField
+TARGET=main
 HDRS=
 SRCS= \
 	helper.cpp \
