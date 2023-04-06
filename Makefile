@@ -6,7 +6,7 @@ TARGET=main
 HDRS=
 SRCS= \
 	helper.cpp \
-	main.cpp
+	mainAirSim.cpp
 OBJS=$(SRCS:.cpp=.o)
 
 .PHONY: all

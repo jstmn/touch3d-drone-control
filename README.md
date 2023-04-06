@@ -19,3 +19,26 @@ sudo apt install libncurses5
 ```
 1. Install the driver (see 'Driver installation guide' on the webpage)
 2. Install library (see 'openhaptics_3.4-0-developer-edition-amd64/README_INSTALL')
+
+**AirSim**
+
+1. Install unity. 
+
+Run editor: `/home/hermes/UnrealEngine-4.27/Engine/Binaries/Linux/UE4Editor ~/AirSim/Unreal/Environments/Blocks/Blocks.uproject`
+
+
+``` bash
+/home/hermes/UnrealEngine-4.27/GenerateProjectFiles.sh ~/AirSim/Unreal/Environments/Blocks/Blocks.uproject -game
+cd ~/AirSim/Unreal/Environments/Blocks/
+make Blocks
+```
+
+Cannot open Blocks.uproject:
+https://github.com/microsoft/AirSim/issues/4535
+
+
+**crazyswarm**
+
+https://crazyswarm.readthedocs.io/en/latest/api.html
+
+

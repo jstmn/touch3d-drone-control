@@ -1,0 +1,11 @@
+
+echo "Starting unreal"
+/home/hermes/UnrealEngine/Engine/Binaries/Linux/UE4Editor /home/hermes/AirSim/Unreal/Environments/Blocks
+
+# 1. Click 'Blocks' after gui pops up
+# 2. Click 'Play'
+# 3. Click 'no' for "Would you like to use car simulation? Choose no to use quadrotor simulation."
+
+# Optionally:
+# - press M while in the 3d viewer to enter manual viewing control. Then press WASD/Arrow keys to move the camera around
+
