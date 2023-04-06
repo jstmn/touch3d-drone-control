@@ -3,6 +3,8 @@ import msgpackrpc #install as admin: pip install msgpack-rpc-python
 import numpy as np #pip install numpy
 import math
 
+_STR_ROUND_AMT = 5
+
 class MsgpackMixin:
     def __repr__(self):
         from pprint import pformat
@@ -96,6 +98,9 @@ class Vector3r(MsgpackMixin):
         self.y_val = y_val
         self.z_val = z_val
 
+    def __str__(self):
+        return f"{round(self.x_val, _STR_ROUND_AMT), round(self.y_val, _STR_ROUND_AMT), round(self.z_val, _STR_ROUND_AMT)}"
+
     @staticmethod
     def nanVector3r():
         return Vector3r(np.nan, np.nan, np.nan)
@@ -160,6 +165,9 @@ class Quaternionr(MsgpackMixin):
         self.y_val = y_val
         self.z_val = z_val
         self.w_val = w_val
+
+    def __str__(self):
+        return f"{round(self.x_val, _STR_ROUND_AMT) , round(self.y_val, _STR_ROUND_AMT), round(self.z_val, _STR_ROUND_AMT), round(self.w_val, _STR_ROUND_AMT)}"
 
     @staticmethod
     def nanQuaternionr():
@@ -401,6 +409,12 @@ class MultirotorState(MsgpackMixin):
     ready = False
     ready_message = ""
     can_arm = False
+
+    def __str__(self):
+        kin_est = self.kinematics_estimated
+        # rotation information (orientation, angular_velocity) is ommited for brevity. Add back when useful
+        return f"<MultirotorState>[pos: {kin_est.position}, rot: (), linear-vel: {kin_est.linear_velocity}, angular-vel: ()]"
+
 
 class RotorStates(MsgpackMixin):
     timestamp = np.uint64(0)
