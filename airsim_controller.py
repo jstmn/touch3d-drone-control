@@ -35,8 +35,12 @@ class AirSimController:
         return self.client.getMultirotorState()
 
     # TODO
-    def set_new_velocity_command(self):
-        raise NotImplementedError()
+    def set_new_velocity_command(self, vx, vy, vz):
+        duration = 10
+        k = 1.5
+        print(f"Moving at {k*vx, k*vy, k*vz} m/s for {duration} seconds")
+        self.client.hoverAsync()
+        self.client.moveByVelocityAsync(-k*vx, k*vy, k*vz, duration)
 
     def test_motion_control(self):
         """ Commands a linear velocity in the +x direction for 6 seconds, then hovers for 5 seconds.
