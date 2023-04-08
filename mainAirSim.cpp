@@ -79,6 +79,7 @@ std::ostream& operator<<(std::ostream& os, const hduVector3Dd& v) {
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <pthread.h>
 
 using namespace std;
 
@@ -90,6 +91,28 @@ struct Coordinate {
 };
 
 int sock = -1;
+Coordinate feedback;
+pthread_mutex_t feedback_mutex;
+
+void* listen_for_messages(void* arg) {
+    while (true) {
+        // receive collision feedback
+        Coordinate new_feedback;
+        int n = recv(sock, &new_feedback, sizeof(new_feedback), 0);
+        if (n <= 0) {
+            // error or connection closed
+            break;
+        }
+    
+        // lock the mutex and update the global coordinate variable
+        pthread_mutex_lock(&feedback_mutex);
+        feedback = new_feedback;
+
+        pthread_mutex_unlock(&feedback_mutex);
+    }
+
+    return NULL;
+}
 /**********************************************/
 
 
@@ -143,7 +166,8 @@ void displayFunction(void)
  
     // Create the force vector.
     // hduVector3Dd velocity_control_vector = -200.0 * force_on_device(state.position);
-    hduVector3Dd velocity_control_vector = 50.0 * velocity_control(state.position);
+    hduVector3Dd velocity_control_vector = velocity_control(state.position);
+    hduVector3Dd graphical_velocity_control_vector = 50.0 * velocity_control_vector;
 
     // pack the coordinate as one packet
     Coordinate coord = {velocity_control_vector[X], velocity_control_vector[Y], velocity_control_vector[Z]};
@@ -151,7 +175,7 @@ void displayFunction(void)
  
     // drawForceVector(pQuadObj, state.position + hduVector3Dd{5.0, 0.0, 0.0}, velocity_control_vector, sphereRadius*.1);
     // drawForceVector(pQuadObj, hduVector3Dd{25.0, 0.0, 0.0}, velocity_control_vector, sphereRadius*.1);
-    drawForceVector(pQuadObj, state.position, velocity_control_vector, sphereRadius*.1);
+    drawForceVector(pQuadObj, state.position, graphical_velocity_control_vector, sphereRadius*.1);
  
     gluDeleteQuadric(pQuadObj);
  
@@ -242,6 +266,9 @@ HDCallbackCode HDCALLBACK CoulombCallback(void *data)
     hdEndFrame(hHD);
  
     // std::cout << pos << std::endl;
+    pthread_mutex_lock(&feedback_mutex);
+    cout << "New feedback: (" << feedback.x << ", " << feedback.y << ", " << feedback.z << ")" << endl;
+    pthread_mutex_unlock(&feedback_mutex);
  
     HDErrorInfo error;
     if (HD_DEVICE_ERROR(error = hdGetError()))
@@ -348,6 +375,10 @@ int main(int argc, char* argv[])
         cerr << "Failed to connect to server" << endl;
         return 1;
     }
+
+    // create a thread to listen for messages from the server
+    pthread_t listener_thread;
+    pthread_create(&listener_thread, NULL, listen_for_messages, NULL);
     
     initGlut(argc, argv);
  
