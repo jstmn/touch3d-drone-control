@@ -42,6 +42,16 @@ class AirSimController:
         self.client.hoverAsync()
         self.client.moveByVelocityAsync(-k*vx, k*vy, k*vz, duration)
 
+    def get_feedback(self):
+        distance_data = self.client.getDistanceSensorData(vehicle_name="SimpleFlight")
+        # collision_data = self.client.simGetCollisionInfo()
+        d = distance_data.distance
+
+        if d < 10:
+            return 10 - d, 0, 10 - d
+        else:
+            return 0, 0, 0
+
     def test_motion_control(self):
         """ Commands a linear velocity in the +x direction for 6 seconds, then hovers for 5 seconds.
         """

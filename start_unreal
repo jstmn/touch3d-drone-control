@@ -1,6 +1,6 @@
 
 echo "Starting unreal"
-/home/hermes/UnrealEngine/Engine/Binaries/Linux/UE4Editor /home/hermes/AirSim/Unreal/Environments/Blocks
+/home/hermes/UnrealEngine/Engine/Binaries/Linux/UE4Editor /home/hermes/AirSim/Unreal/Environments/Blocks/Blocks.uproject
 
 # 1. Click 'Blocks' after gui pops up
 # 2. Click 'Play'

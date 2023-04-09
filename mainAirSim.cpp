@@ -227,11 +227,16 @@ hduVector3Dd force_on_device(hduVector3Dd pos){
  
     const double kXzForceScale = 0.1;
     const double kYForceScale = 0.1;
+
+    // pthread_mutex_lock(&feedback_mutex);
+    cout << "New feedback: (" << feedback.x << ", " << feedback.y << ", " << feedback.z << ")" << endl;
+    // pthread_mutex_unlock(&feedback_mutex);
  
-    forceVec[X] = -kXzForceScale * device_to_reference[X];
-    forceVec[Z] = -kXzForceScale * device_to_reference[Z];
+    forceVec[X] = -kXzForceScale * (device_to_reference[X] - 2*feedback.x);
+    forceVec[Z] = -kXzForceScale * (device_to_reference[Z] - 2*feedback.z);
     forceVec[Y] = -kYForceScale * pos[Y];
  
+    cout << "Force: (" << forceVec[X] << ", " << forceVec[Y] << ", " << forceVec[Z] << ")" << endl;
     return forceVec;
 }
  
@@ -266,9 +271,9 @@ HDCallbackCode HDCALLBACK CoulombCallback(void *data)
     hdEndFrame(hHD);
  
     // std::cout << pos << std::endl;
-    pthread_mutex_lock(&feedback_mutex);
-    cout << "New feedback: (" << feedback.x << ", " << feedback.y << ", " << feedback.z << ")" << endl;
-    pthread_mutex_unlock(&feedback_mutex);
+    // pthread_mutex_lock(&feedback_mutex);
+    // cout << "New feedback: (" << feedback.x << ", " << feedback.y << ", " << feedback.z << ")" << endl;
+    // pthread_mutex_unlock(&feedback_mutex);
  
     HDErrorInfo error;
     if (HD_DEVICE_ERROR(error = hdGetError()))

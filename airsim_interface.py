@@ -43,15 +43,18 @@ while True:
     i += 1
     # print(struct.unpack('fff', data))
     vy, vz, vx = struct.unpack('fff', data)
+
+    
+    #TODO generate a feedback based on collision status
+    feedback = asc.get_feedback()
+
+    # send feedback back to the client
+    send_feedback(feedback, client_sock)
     
     if i % 10 == 0:
         asc.set_new_velocity_command(vx, vy, vz)
         
-        #TODO generate a feedback based on collision status
-        feedback = (i, 0, 0)
-
-        # send feedback back to the client
-        send_feedback(feedback, client_sock)
+        
 
 
 # close the client socket and the server socket
