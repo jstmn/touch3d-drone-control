@@ -46,9 +46,15 @@ class AirSimController:
         distance_data = self.client.getDistanceSensorData(vehicle_name="SimpleFlight")
         # collision_data = self.client.simGetCollisionInfo()
         d = distance_data.distance
+        d_max = 15
+        k = 40
+        # potential field
+        # f_rep = max(k * (1/d - 1/d_max), 0)
+        # liner
+        f_rep = max(d_max - d, 0)
 
-        if d < 10:
-            return 10 - d, 0, 10 - d
+        if d < d_max:
+            return f_rep, 0, 2 * f_rep
         else:
             return 0, 0, 0
 

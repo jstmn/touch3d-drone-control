@@ -37,6 +37,8 @@ Description:
 #define X 0
 #define Y 1
 #define Z 2
+
+#define IIRGAIN 0.05
  
 const hduVector3Dd kReferencePoint;
  
@@ -91,7 +93,9 @@ struct Coordinate {
 };
 
 int sock = -1;
-Coordinate feedback;
+hduVector3Dd feedback(0.0, 0.0, 0.0);
+hduVector3Dd oldFeedback(0.0, 0.0, 0.0);
+
 pthread_mutex_t feedback_mutex;
 
 void* listen_for_messages(void* arg) {
@@ -106,9 +110,14 @@ void* listen_for_messages(void* arg) {
     
         // lock the mutex and update the global coordinate variable
         pthread_mutex_lock(&feedback_mutex);
-        feedback = new_feedback;
+        feedback.set(new_feedback.x, new_feedback.y, new_feedback.z);
 
         pthread_mutex_unlock(&feedback_mutex);
+
+
+        // Filter feedback
+        feedback = IIRGAIN * feedback + (1 - IIRGAIN) * oldFeedback;
+        oldFeedback = feedback;
     }
 
     return NULL;
@@ -229,11 +238,11 @@ hduVector3Dd force_on_device(hduVector3Dd pos){
     const double kYForceScale = 0.1;
 
     // pthread_mutex_lock(&feedback_mutex);
-    cout << "New feedback: (" << feedback.x << ", " << feedback.y << ", " << feedback.z << ")" << endl;
+    cout << "New feedback: (" << feedback[X] << ", " << feedback[Y] << ", " << feedback[Z] << ")" << endl;
     // pthread_mutex_unlock(&feedback_mutex);
  
-    forceVec[X] = -kXzForceScale * (device_to_reference[X] - 2*feedback.x);
-    forceVec[Z] = -kXzForceScale * (device_to_reference[Z] - 2*feedback.z);
+    forceVec[X] = -kXzForceScale * (device_to_reference[X] - 2*feedback[X]);
+    forceVec[Z] = -kXzForceScale * (device_to_reference[Z] - 2*feedback[Z]);
     forceVec[Y] = -kYForceScale * pos[Y];
  
     cout << "Force: (" << forceVec[X] << ", " << forceVec[Y] << ", " << forceVec[Z] << ")" << endl;
