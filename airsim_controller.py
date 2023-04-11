@@ -47,11 +47,13 @@ class AirSimController:
         # collision_data = self.client.simGetCollisionInfo()
         d = distance_data.distance
         d_max = 15
-        k = 40
+        k = 50
+        
         # potential field
-        # f_rep = max(k * (1/d - 1/d_max), 0)
+        f_rep = max(k * (1/d - 1/d_max), 0)
+        
         # liner
-        f_rep = max(d_max - d, 0)
+        # f_rep = max(d_max - d, 0)
 
         if d < d_max:
             return f_rep, 0, 2 * f_rep
