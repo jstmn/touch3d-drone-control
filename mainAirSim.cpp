@@ -39,6 +39,7 @@ Description:
 #define Z 2
 
 #define IIRGAIN 0.05
+#define DEBUG 1
  
 const hduVector3Dd kReferencePoint;
  
@@ -234,30 +235,41 @@ hduVector3Dd force_on_device(hduVector3Dd pos){
  
     const auto device_to_reference = pos - kReferencePoint;
  
-    const double kXzForceScale = 0.1;
-    const double kYForceScale = 0.1;
+    const double kXzForceScale = 0.05;
+    const double kYForceScale = 0.05;
 
     // pthread_mutex_lock(&feedback_mutex);
-    cout << "New feedback: (" << feedback[X] << ", " << feedback[Y] << ", " << feedback[Z] << ")" << endl;
+    // cout << "New feedback: (" << feedback[X] << ", " << feedback[Y] << ", " << feedback[Z] << ")" << endl;
     // pthread_mutex_unlock(&feedback_mutex);
  
-    forceVec[X] = -kXzForceScale * (device_to_reference[X] - 2*feedback[X]);
-    forceVec[Z] = -kXzForceScale * (device_to_reference[Z] - 2*feedback[Z]);
+    forceVec[X] = -kXzForceScale * (device_to_reference[X] - 3*feedback[X]);
+    forceVec[Z] = -kXzForceScale * (device_to_reference[Z] - 3*feedback[Z]);
     forceVec[Y] = -kYForceScale * pos[Y];
  
-    cout << "Force: (" << forceVec[X] << ", " << forceVec[Y] << ", " << forceVec[Z] << ")" << endl;
+    if (feedback[X] != 0 && feedback[Z] != 0)
+        cout << "Force: (" << forceVec[X] << ", " << forceVec[Y] << ", " << forceVec[Z] << ")" << endl;
     return forceVec;
 }
  
 hduVector3Dd velocity_control(const hduVector3Dd& pos){
- 
+    const double kXZScale = 0.2;
+    const double kYScale = 0.1;
     hduVector3Dd vcontrol(0, 0, 0);
  
+    const double deadZoneR = 10;
     const auto device_to_reference = pos - kReferencePoint;
-    const double kXzScale = 0.1;
- 
-    vcontrol[X] = kXzScale * device_to_reference[X];
-    vcontrol[Z] = kXzScale * device_to_reference[Z];
+    double norm = device_to_reference.magnitude();
+    const auto ref_normalized = device_to_reference / norm;
+
+    if (norm > deadZoneR + 1) {
+        // horizontal conrol
+        vcontrol[X] = kXZScale * (device_to_reference[X] - deadZoneR * ref_normalized[X]);
+        vcontrol[Z] = kXZScale * (device_to_reference[Z] - deadZoneR * ref_normalized[Z]);
+
+        // controllig height
+        vcontrol[Y] = kYScale * (device_to_reference[Y] - deadZoneR * ref_normalized[Y]);
+    }
+    
     return vcontrol;
 }
  

@@ -45,5 +45,6 @@ https://crazyswarm.readthedocs.io/en/latest/api.html
 
 **Running crazyflie**
 
-`cfclient` `/home/hamed/crazyswarm/ros_ws/src/crazyswarm/scripts/chooser.py`
+`cfclient`
+`/home/hamed/crazyswarm/ros_ws/src/crazyswarm/scripts/chooser.py`
 `roslaunch crazyswarm hover_swarm.launch`

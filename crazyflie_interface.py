@@ -6,6 +6,7 @@ import cv2
 
 import socket
 import struct
+from time import time
 
 from crazyflie_controller import CrazyflieController
  
@@ -29,6 +30,9 @@ print("touch client connected")
 cfc = CrazyflieController()
 
 
+loop_dts = []
+t_last = time()
+
 # Call set_new_velocity_command() when data is recieved
 data = None
 i = 0
@@ -50,10 +54,17 @@ while True:
 
     # send feedback back to the client
     send_feedback(feedback, client_sock)
-    
+    loop_dts.append(time() - t_last)
+
     if i % 10 == 0:
         cfc.set_new_velocity_command(-vx, -vy, vz)
-        
+
+    # Loop timing info
+    # t_last = time()
+    # if len(loop_dts) > 10:
+    #     loop_dts = loop_dts[-10:]
+    #     print(sum(loop_dts)/len(loop_dts))
+ 
         
 
 
