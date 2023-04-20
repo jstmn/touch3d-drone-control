@@ -1,22 +1,101 @@
-from typing import Tuple
+from typing import Tuple, List
 from time import time, sleep
 import sys
 import math
 from threading import Thread
+from abc import ABC, abstractmethod
 
 sys.path.append("/home/hamed/crazyswarm/ros_ws/src/crazyswarm/scripts/")
-# sys.path.append("./PythonClient/multirotor/")
-# import setup_path
 
 from pycrazyswarm import Crazyswarm
 import pycrazyswarm
-
 import numpy as np
+
+POS_TYPE = Tuple[float, float, float]
 
 TAKEOFF_DURATION = 2.5
 LAND_DURATION = 5.0
 
 VEL_THREAD_HZ = 200
+
+#             FAR_WALL
+#            ----------
+#           |          |
+#           |     +x   |
+# LEFT_WALL |  +y _|   |  RIGHT_WALL 
+#           |          |
+#           |          |
+#            ----------
+#            CLOSE_WALL
+
+WALL_PADDING = 0
+LEFT_WALL_Y = 4000/1000 - WALL_PADDING # meters
+# RIGHT_WALL_Y = -4700/1000 + WALL_PADDING # meters
+RIGHT_WALL_Y = -2.5 # meters
+FAR_WALL_X = 5500/1000 - WALL_PADDING # meters
+CLOSE_WALL_X = -6000/1000 + WALL_PADDING # meters
+
+MAX_FORCE_FEEDBACK = 50
+
+
+def vec_vicon_to_t3d(x: float, y: float, z: float) -> POS_TYPE:
+    return -y, z, -x
+
+def mag_vicon_to_t3d(x: float, y: float, z: float) -> POS_TYPE:
+    return y, z, x
+
+def summed_vecs(vecs: List[POS_TYPE]) -> POS_TYPE:
+    xs = [v[0] for v in vecs]
+    ys = [v[1] for v in vecs]
+    zs = [v[2] for v in vecs]
+    return sum(xs), sum(ys), sum(zs)
+
+def zero_out_if_small(vec: POS_TYPE):
+    v = [vec[0], vec[1], vec[2]]
+    for i in range(3):
+        if -1e-8 < v[i] < 1e-8:
+            v[i] = 0.0
+    return v
+
+class WallBarrier(ABC):
+
+    @abstractmethod
+    def repulsion_vec(self, current_pos: POS_TYPE, current_vel: POS_TYPE) -> Tuple[POS_TYPE, POS_TYPE]:
+        raise NotImplementedError()
+
+
+class RightWallBarrier(WallBarrier):
+
+    def stiffness_vec(self, d) -> POS_TYPE:
+        # potential field
+        # d_max = 1
+        # f_rep = max(k * (1/d - 1/d_max), 0)
+        s_rep = max(0.5 - d, 0) # linear
+        return mag_vicon_to_t3d(0, s_rep, 0)
+
+    def repulsion_vec(self, pos: POS_TYPE, vel: POS_TYPE) -> POS_TYPE:
+        d = pos[1] - RIGHT_WALL_Y 
+        
+        # 10^s*(padding-d)
+        #   s: scaling term
+        #   p: padding term, meters
+        scale_term = 1.8 # good, but fairly steep
+        padding = 1 
+        # scale_term = 0.75  # too unsteep, bad
+        # padding = 2.27
+        # scale_term = 1 # good, but fairly non-steeo
+        # padding = 1.75
+
+        f_rep = min(math.pow(10, scale_term*(padding - d)), MAX_FORCE_FEEDBACK)
+        
+        # stiffness_vec
+        # if vel[1] > 0.05:
+        #     print("moving away from the wall, no repelling force")
+        #     s_rep = 0
+        #     f_rep = f_rep*0.2
+        return vec_vicon_to_t3d(0, f_rep, 0), (0.0, 0.0, 0.0)
+
+
 
 class CrazyflieController:
 
@@ -34,6 +113,10 @@ class CrazyflieController:
         self.vel_thread_ref = Thread(target=self.vel_thread)
         self.vel_thread_ref.start()
         self.vel = (0, 0, 0)
+
+        self.walls = [
+            RightWallBarrier()
+        ]
         
         # sleep(5)
         # self.safe_exit()
@@ -59,6 +142,8 @@ class CrazyflieController:
                 return
             
             pos_current = self.client.position()
+            
+            # TODO: Replace this with crazieflie's timing class
             t_now = time()
             t_next = t_last + min_dt 
             if t_now < t_next:
@@ -111,33 +196,22 @@ class CrazyflieController:
 
     def set_new_velocity_command(self, vx, vy, vz):
         k = 0.15
-        # self.client.cmdVelocityWorld(k*np.array([vx, vy, vz]), yawRate=0)
         self.client.cmdVelocityWorld(k*np.array([vx, vy, vz]), yawRate=0)
 
     # TODO: have this change the stiffness for moving to the reference point instead of direct force
-    def get_feedback(self) -> Tuple[float, float, float]:
+    def get_feedback(self) -> POS_TYPE:
         pos = self.client.position()        
+        vel = self.vel
 
-        right_wall_y = -2
+        forces = []
+        stiffnesses = []
+        for wall in self.walls:
+            force, stiff = wall.repulsion_vec(pos, vel)
+            forces.append(zero_out_if_small(force))
+            stiffnesses.append(zero_out_if_small(stiff))
 
-        d = pos[1] - right_wall_y 
-        d_max = 1
-        k = 75
-        
-        # potential field
-        f_rep = max(k * (1/d - 1/d_max), 0)
-        # f_rep = max(d - d_max, 0) # liner
+        return summed_vecs(forces), summed_vecs(stiffnesses)    
 
-        # TODO: Handle walls 
-        if self.vel[1] > 0:
-            print("moving away from the wall, no repelling force")
-            f_rep = 0
-
-
-        if d < d_max:
-            return -f_rep, 0, 0
-        else:
-            return 0, 0, 0
 
     def test_motion_control(self):
         """ Commands a linear velocity in the +x direction for 6 seconds, then hovers for 5 seconds.

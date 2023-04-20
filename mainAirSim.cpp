@@ -38,8 +38,9 @@ Description:
 #define Y 1
 #define Z 2
 
-#define IIRGAIN 0.05
+#define IIRGAIN 0.3
 #define DEBUG 1
+#define GRAVITY_COMPENSATION 0.5
  
 const hduVector3Dd kReferencePoint;
  
@@ -91,10 +92,24 @@ struct Coordinate {
     float x;
     float y;
     float z;
+    float sx;
+    float sy;
+    float sz;
 };
 
+struct Velocity {
+    float x;
+    float y;
+    float z;
+};
+
+int counter = 0;
 int sock = -1;
 hduVector3Dd feedback(0.0, 0.0, 0.0);
+hduVector3Dd stiffness(0.0, 0.0, 0.0);
+hduVector3Dd oldStiffness(0.0, 0.0, 0.0);
+
+
 hduVector3Dd oldFeedback(0.0, 0.0, 0.0);
 
 pthread_mutex_t feedback_mutex;
@@ -112,13 +127,16 @@ void* listen_for_messages(void* arg) {
         // lock the mutex and update the global coordinate variable
         pthread_mutex_lock(&feedback_mutex);
         feedback.set(new_feedback.x, new_feedback.y, new_feedback.z);
+        stiffness.set(new_feedback.sx, new_feedback.sy, new_feedback.sz);
 
         pthread_mutex_unlock(&feedback_mutex);
 
 
         // Filter feedback
-        feedback = IIRGAIN * feedback + (1 - IIRGAIN) * oldFeedback;
-        oldFeedback = feedback;
+        // feedback = IIRGAIN * feedback + (1 - IIRGAIN) * oldFeedback;
+        // oldFeedback = feedback;
+        // stiffness = IIRGAIN * stiffness + (1 - IIRGAIN) * oldStiffness;
+        // oldStiffness = stiffness;
     }
 
     return NULL;
@@ -179,8 +197,8 @@ void displayFunction(void)
     hduVector3Dd velocity_control_vector = velocity_control(state.position);
     hduVector3Dd graphical_velocity_control_vector = 50.0 * velocity_control_vector;
 
-    // pack the coordinate as one packet
-    Coordinate coord = {velocity_control_vector[X], velocity_control_vector[Y], velocity_control_vector[Z]};
+    // pack the velocity as one packet
+    Velocity coord = {velocity_control_vector[X], velocity_control_vector[Y], velocity_control_vector[Z]};
     send(sock, &coord, sizeof(coord), 0);
  
     // drawForceVector(pQuadObj, state.position + hduVector3Dd{5.0, 0.0, 0.0}, velocity_control_vector, sphereRadius*.1);
@@ -226,28 +244,52 @@ void handleMenu(int ID)
 }
  
  
+double clamp(double x, double min_v, double max_v) {
+    if (x > max_v) {
+        return max_v;
+    } else if (x < min_v) {
+        return min_v;
+    }
+    return x;
+}
+
 /*******************************************************************************
  Given the position is space, calculates the (modified) coulomb force.
 *******************************************************************************/
 hduVector3Dd force_on_device(hduVector3Dd pos){
  
-    hduVector3Dd forceVec(0, 0, 0);
- 
-    const auto device_to_reference = pos - kReferencePoint;
- 
-    const double kXzForceScale = 0.05;
-    const double kYForceScale = 0.05;
+    // Force information
+    //   light force:   0-3
+    //   firm force:    10-25
+    //   maximum force: 50
 
-    // pthread_mutex_lock(&feedback_mutex);
-    // cout << "New feedback: (" << feedback[X] << ", " << feedback[Y] << ", " << feedback[Z] << ")" << endl;
-    // pthread_mutex_unlock(&feedback_mutex);
- 
-    forceVec[X] = -kXzForceScale * (device_to_reference[X] - 3*feedback[X]);
-    forceVec[Z] = -kXzForceScale * (device_to_reference[Z] - 3*feedback[Z]);
-    forceVec[Y] = -kYForceScale * pos[Y];
- 
-    if (feedback[X] != 0 && feedback[Z] != 0)
-        cout << "Force: (" << forceVec[X] << ", " << forceVec[Y] << ", " << forceVec[Z] << ")" << endl;
+    hduVector3Dd forceVec(0, 0, 0);
+    forceVec[Y] = GRAVITY_COMPENSATION;
+    const auto device_to_reference = pos - kReferencePoint;
+    const double kXzForceScale = 0.075;
+    const double kYForceScale = 0.05;
+    
+    // No feedback
+    // forceVec[X] = -kXzForceScale * device_to_reference[X];
+    // forceVec[Z] = -kXzForceScale * device_to_reference[Z];
+
+    // Approach 1 - direct force control
+    const double kXzForceFeedbackScale = 1.0;
+    const auto force_feedback = kXzForceFeedbackScale * feedback;
+    forceVec[X] = (-kXzForceScale * device_to_reference[X]) + force_feedback[0];
+    forceVec[Z] = (-kXzForceScale * device_to_reference[Z]) + force_feedback[1];
+    counter += 1;
+    if (counter % 100 == 0){
+        cout << forceVec << "\t" << feedback <<  endl;
+    }
+
+    // approach 2 - force 
+    // const double kXzForceFeedbackScale = 0.15;
+    // forceVec[X] = -(kXzForceScale + stiffness[X]) * (device_to_reference[X]) + kXzForceFeedbackScale * feedback[X];
+    // forceVec[Z] = -(kXzForceScale + stiffness[Z]) * (device_to_reference[Z]) + kXzForceFeedbackScale * feedback[Z];
+    
+    forceVec[Y] += -kYForceScale * pos[Y];
+    
     return forceVec;
 }
  
@@ -257,6 +299,7 @@ hduVector3Dd velocity_control(const hduVector3Dd& pos){
     hduVector3Dd vcontrol(0, 0, 0);
  
     const double deadZoneR = 10;
+    // const double deadZoneR = 0;
     const auto device_to_reference = pos - kReferencePoint;
     double norm = device_to_reference.magnitude();
     const auto ref_normalized = device_to_reference / norm;
@@ -269,7 +312,6 @@ hduVector3Dd velocity_control(const hduVector3Dd& pos){
         // controllig height
         vcontrol[Y] = kYScale * (device_to_reference[Y] - deadZoneR * ref_normalized[Y]);
     }
-    
     return vcontrol;
 }
  

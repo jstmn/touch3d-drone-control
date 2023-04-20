@@ -42,6 +42,11 @@ https://github.com/microsoft/AirSim/issues/4535
 
 https://crazyswarm.readthedocs.io/en/latest/api.html
 
+``` bash
+python3 crazyflie_interface.py  # terminal 1
+make && ./main;                 # terminal 2
+
+```
 
 **Running crazyflie**
 

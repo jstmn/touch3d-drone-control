@@ -11,8 +11,8 @@ from time import time
 from crazyflie_controller import CrazyflieController
  
 
-def send_feedback(feedback, client_sock):
-    packed_feedback = struct.pack('fff', feedback[0], feedback[1], feedback[2])
+def send_feedback(feedback, stiffness, client_sock):
+    packed_feedback = struct.pack('ffffff', feedback[0], feedback[1], feedback[2], stiffness[0], stiffness[1], stiffness[2])
     client_sock.sendall(packed_feedback)
 
 
@@ -40,7 +40,6 @@ while True:
     # receive the velocity command
     data = client_sock.recv(12)
     i += 1
-    # print(struct.unpack('fff', data))
     try:
         vy, vz, vx = struct.unpack('fff', data)
     except Exception as e: # struct.error is not catching "struct.error: unpack requires a buffer of 12 bytes"
@@ -49,21 +48,20 @@ while True:
         cfc.safe_exit()
         exit()
     
-    #TODO generate a feedback based on collision status
-    feedback = cfc.get_feedback()
-
     # send feedback back to the client
-    send_feedback(feedback, client_sock)
-    loop_dts.append(time() - t_last)
-
-    if i % 10 == 0:
-        cfc.set_new_velocity_command(-vx, -vy, vz)
+    feedback, stiffness = cfc.get_feedback()
+    send_feedback(feedback, stiffness, client_sock)
+    cfc.set_new_velocity_command(-vx, -vy, vz)
 
     # Loop timing info
-    # t_last = time()
-    # if len(loop_dts) > 10:
-    #     loop_dts = loop_dts[-10:]
-    #     print(sum(loop_dts)/len(loop_dts))
+    loop_dts.append(time() - t_last)
+    t_last = time()
+    if len(loop_dts) > 10:
+        loop_dts = loop_dts[-10:]
+        if i % 250 == 0:
+            mean_dt = sum(loop_dts)/len(loop_dts)
+            hz = 1 / mean_dt 
+            print(f"Interface loop running at {round(hz, 2)} hz ({round(1000*mean_dt, 4)} ms per iteration)")
  
         
 
