@@ -79,7 +79,7 @@ class Obstacle(ABC):
         """
         d: distance from wall
         """
-        # See https://www.desmos.com/calculator/m7nsxfqvzj
+        # See https://www.desmos.com/calculator/nxjekq2wkk
         # 10^s*(padding-d)
         #   s: scaling term
         #   p: padding term, meters
@@ -92,10 +92,7 @@ class Obstacle(ABC):
         f_rep = min(math.pow(10, scale_term*(padding - d)), MAX_FORCE_FEEDBACK)
         return f_rep
 
-
-
 class RightWallBarrier(Obstacle):
-
     def stiffness_vec(self, d) -> POS_TYPE:
         # if vel[1] > 0.05:
         #     s_rep = 0        
@@ -104,35 +101,24 @@ class RightWallBarrier(Obstacle):
         # f_rep = max(k * (1/d - 1/d_max), 0)
         s_rep = max(0.5 - d, 0) # linear
         return mag_vicon_to_t3d(0, s_rep, 0)
-
     def repulsion_vec(self, pos: POS_TYPE, vel: POS_TYPE) -> POS_TYPE:
         d = pos[1] - RIGHT_WALL_Y 
         f_rep = Obstacle.wall_barrier_repulsion_force(d)
-        # stiffness_vec
-        # if vel[1] > 0.05:
-        #     print("moving away from the wall, no repelling force")
-        #     s_rep = 0
-        #     f_rep = f_rep*0.2
         return vec_vicon_to_t3d(0, f_rep, 0), (0.0, 0.0, 0.0), d
 
 class LeftWallBarrier(Obstacle):
-
     def repulsion_vec(self, pos: POS_TYPE, vel: POS_TYPE) -> POS_TYPE:
         d = LEFT_WALL_Y - pos[1] 
         f_rep = Obstacle.wall_barrier_repulsion_force(d)
         return vec_vicon_to_t3d(0, -f_rep, 0), (0.0, 0.0, 0.0), d
 
-
 class FarWallBarrier(Obstacle):
-
     def repulsion_vec(self, pos: POS_TYPE, vel: POS_TYPE) -> POS_TYPE:
         d = FAR_WALL_X - pos[0]
         f_rep = Obstacle.wall_barrier_repulsion_force(d)
         return vec_vicon_to_t3d(-f_rep, 0, 0), (0.0, 0.0, 0.0), d
 
-
 class CloseWallBarrier(Obstacle):
-
     def repulsion_vec(self, pos: POS_TYPE, vel: POS_TYPE) -> POS_TYPE:
         d = pos[0] - CLOSE_WALL_X
         f_rep = Obstacle.wall_barrier_repulsion_force(d)
@@ -141,7 +127,6 @@ class CloseWallBarrier(Obstacle):
 
 class DynamicObstacle(Obstacle):
 
-    # def __init__(self, client_obj):
     def __init__(self, client_obj: "pycrazyswarm.crazyflie.Crazyflie"):
         self.client_obj_ = client_obj
         self.last_d = None
@@ -165,18 +150,42 @@ class DynamicObstacle(Obstacle):
         
         repulsion_magnitude = min(math.pow(10, scale_term*(padding - d)), MAX_FORCE_FEEDBACK)
         repulsion_vec = delta / norm * repulsion_magnitude
-        print(round(d, 4), "\t", repulsion_magnitude, "\t delta: ", delta)
+        # print(round(d, 4), "\t", repulsion_magnitude, "\t delta: ", delta)
         # print(norm, repulsion_vec)
-
         stiffness = max(0, -.15 * d + 0.075)
         return vec_vicon_to_t3d_np(repulsion_vec), (stiffness, stiffness, stiffness), d
 
 
+class TrashCanObstacle(Obstacle):
+    
+    TRASH_CAN_POSITION = np.array((2.0, 1.0))
+    TRASH_CAN_RADIUS = 0.30
+
+    def repulsion_vec(self, drone_pos: np.ndarray, vel: np.ndarray) -> POS_TYPE:
+
+        delta = drone_pos[0:2] - TrashCanObstacle.TRASH_CAN_POSITION
+        d = np.linalg.norm(delta)
+        # scale_term = 1.8 # too strong
+        # padding = 2 
+        # scale_term = 1.16 # too strong
+        # padding = 1.5
+        scale_term = 1.7 # pretty good
+        padding = 1.0
+        repulsion_magnitude = min(math.pow(10, scale_term*(padding - d)), MAX_FORCE_FEEDBACK)
+        repulsion_vec = delta / d * repulsion_magnitude
+        # print(round(d, 4), "\t", repulsion_magnitude, "\t delta: ", delta)
+        a = -0.145
+        b = 0.1
+        stiffness = max(0, a * d + b)
+        return vec_vicon_to_t3d(repulsion_vec[0], repulsion_vec[1], 0), (stiffness, stiffness, stiffness), d
+
+
+
 CRAZYFLIE_ID_TO_DESCRIPTION = {
     "mainboi": 1,
-    "box": 3,
     "chair": 2
 }
+
 
 
 class ZigZagDiaganolTrackTracker:
@@ -193,7 +202,13 @@ class ZigZagDiaganolTrackTracker:
         self.should_kill_threads = False
         # TODO: read order from list instead of hardcoding
         # self.order = ["START", "A", "C", "D", "B"]
-        self.thread_ref = Thread(target=self.diaganol_track_thread)
+
+        # TASK 2: ZIG ZAG
+        # self.thread_ref = Thread(target=lambda : self.zigzag_track_thread(["A", "C", "D", "B"]) )
+        # self.thread_ref.start()
+
+        # TASK 3: DIAGONAL
+        self.thread_ref = Thread(target=lambda : self.zigzag_track_thread(["A", "C", "A", "C", "A", "C"]) )
         self.thread_ref.start()
 
     def shutdown(self):
@@ -202,52 +217,42 @@ class ZigZagDiaganolTrackTracker:
     def __del__(self):
         self.thread_ref.join()
 
-    def diaganol_track_thread(self):
-        print("starting diaganol_track_thread()")
+    def zigzag_track_thread(self, waypoint_names: List[str]):
+        print("diaganol_track_thread() | starting")
         rate = rospy.Rate(50)
 
-        last_waypoint = "START"
         t0 = time()
         waypoint_ts = []
 
+        last_waypoint = "START"
+        next_waypoint_idx = 0
+        waypoints = [
+            (name, ZigZagDiaganolTrackTracker.DIAGANOL_TRACK_WAYPOINTS[name]) for name in waypoint_names
+        ]
+
         def in_waypoints(_pos):
-            for name, xy in ZigZagDiaganolTrackTracker.DIAGANOL_TRACK_WAYPOINTS.items():
+            for name, xy in waypoints:
                 norm = np.linalg.norm(_pos[0:2] - xy)
                 if norm < 0.5:
+                # if norm < 1:
                     return name
             return None
 
         while not self.should_kill_threads:
             rate.sleep()
             pos = self._position_fn()
-
             reached_waypoint = in_waypoints(pos)
-
             if reached_waypoint is not None:
-
-                if last_waypoint == "START" and reached_waypoint == "A":
-                    print("Wahoo, reached waypoint A")
-                    last_waypoint = "A"
+               
+               if (reached_waypoint != last_waypoint) and (reached_waypoint == waypoints[next_waypoint_idx][0]):
+                    last_waypoint = waypoints[next_waypoint_idx][0]
                     waypoint_ts.append(time() - t0)
+                    print(f"Wahoo, reached waypoint {last_waypoint}")
                     print(waypoint_ts)
-
-                elif last_waypoint == "A" and reached_waypoint == "C":
-                    print("Wahoo, reached waypoint C")
-                    last_waypoint = "C"
-                    waypoint_ts.append(time() - t0)
-                    print(waypoint_ts)
-
-                elif last_waypoint == "C" and reached_waypoint == "D":
-                    print("Wahoo, reached waypoint D")
-                    last_waypoint = "D"
-                    waypoint_ts.append(time() - t0)
-                    print(waypoint_ts)
-
-                elif last_waypoint == "D" and reached_waypoint == "B":
-                    last_waypoint = "B"
-                    waypoint_ts.append(time() - t0)
-                    print("Wahoo, reached waypoint B")
-                    print(waypoint_ts)
+                    next_waypoint_idx += 1
+                    if next_waypoint_idx == len(waypoints):
+                        print("Course complete")
+                        return
 
         print("exiting from diaganol_track_thread()")
 
@@ -268,21 +273,19 @@ class CrazyflieController:
 
     def __init__(self, takeoff_on_start: bool = True):
 
-        swarm = Crazyswarm(crazyflies_yaml="/home/hamed/crazyswarm/ros_ws/src/crazyswarm/launch/crazyflies.yaml")
+        self.swarm = Crazyswarm(crazyflies_yaml="/home/hamed/crazyswarm/ros_ws/src/crazyswarm/launch/crazyflies.yaml")
+        self.generic_joystick: pycrazyswarm.genericJoystick.Joystick = self.swarm.input
         self.safe_exit_fn_reached = False
-        self.timeHelper = swarm.timeHelper
-        all_cfs = swarm.allcfs.crazyflies
+        self.timeHelper = self.swarm.timeHelper
+        all_cfs = self.swarm.allcfs.crazyflies
         
         # Initialize Crazyflie objects
         self.client = None
-        self.box: Optional[pycrazyswarm.crazyflie.Crazyflie] = None
         self.chair: Optional[pycrazyswarm.crazyflie.Crazyflie] = None
         for cf in all_cfs:
             assert cf.id in CRAZYFLIE_ID_TO_DESCRIPTION.values(), f"Error - did not find crazyflie in known crazyflies (id: {cf.id}, known: {CRAZYFLIE_ID_TO_DESCRIPTION.values()})"
             if cf.id == CRAZYFLIE_ID_TO_DESCRIPTION["mainboi"]:
                 self.client: pycrazyswarm.crazyflie.Crazyflie = cf
-            elif cf.id == CRAZYFLIE_ID_TO_DESCRIPTION["box"]:
-                self.box = cf
             elif cf.id == CRAZYFLIE_ID_TO_DESCRIPTION["chair"]:
                 self.chair = cf
         assert self.client is not None
@@ -298,6 +301,7 @@ class CrazyflieController:
         # In trackable area thread
         self.should_kill_threads = False
         self.should_do_emergency_landing = False
+        self.emergency_landing_is_complete = False
         self.in_trackable_area_thread_ref = Thread(target=self.in_trackable_area_thread)
         self.in_trackable_area_thread_ref.start()
 
@@ -317,16 +321,23 @@ class CrazyflieController:
             # RightWallBarrier(),
         ]
         self.obstacles: List[Obstacle] = [
-            DynamicObstacle(self.box),
-            # DynamicObstacle(self.chair)
+            TrashCanObstacle(),
+            # DynamicObstacle(client_obj=self.chair)
         ]
 
     def __del__(self):
         self.diaganol_track_tracker.shutdown()
         self.should_kill_threads = True
+        self.in_trackable_area_thread_ref.join()
         self.safe_exit()
         # self.vel_thread_ref.join()
-        self.in_trackable_area_thread_ref.join()
+
+    def get_joystick_desired_velocity(self):        
+        state = self.generic_joystick.js.read(self.generic_joystick.joyID)
+        joystick_x = state[0][0]
+        joystick_y = state[0][1]
+        joystick_z = -state[0][3]
+        return (-joystick_y, -joystick_x, joystick_z)
 
     def get_chair_position(self):
         assert self.chair is not None
@@ -343,6 +354,7 @@ class CrazyflieController:
 
         last_pos = self.client.position() 
         n_missed_updates = 0
+        sleep(TAKEOFF_DURATION + 2)
 
         while not self.should_kill_threads:
             rate.sleep()
@@ -354,16 +366,16 @@ class CrazyflieController:
             delta_norm = np.linalg.norm(last_pos - pos)
             if delta_norm < 1e-8:
                 n_missed_updates += 1
-                print(f"in_trackable_area_thread() |  WARNING: OUT OF TRACKABLE AREA!!! DANGER!!! Number of missed updates: {n_missed_updates}")
+                # print(f"in_trackable_area_thread() | WARNING: OUT OF TRACKABLE AREA!!! DANGER!!! Number of missed updates: {n_missed_updates}")
             else:
                 n_missed_updates = 0
             last_pos = pos
 
-            if n_missed_updates == 4:
-                print(f"in_trackable_area_thread() | {n_missed_updates} missed position updates, sending emergency stop")
+            if n_missed_updates == 8:
+                # print(f"in_trackable_area_thread() | {n_missed_updates} missed position updates, sending emergency stop")
                 self.do_emergency_landing()
 
-        print("exiting from in_trackable_area_thread()")
+        print("in_trackable_area_thread() | exiting")
 
 
     def vel_thread(self):
@@ -405,7 +417,7 @@ class CrazyflieController:
             v_mean_z = np.mean([v[2] for v in vs])
             self.vel = (v_mean_x, v_mean_y, v_mean_z)
             # print(f"vel: {round(float(self.vel[0]), 5)}\t{round(float(self.vel[1]), 5)}\t{round(float(self.vel[2]), 5)}")
-        print("exiting from vel_thread()")
+        print("vel_thread() | exiting")
 
 
     def safe_exit(self):
@@ -416,37 +428,54 @@ class CrazyflieController:
         self.diaganol_track_tracker.shutdown()
         self.safe_exit_fn_reached = True
         self.should_kill_threads = True
-        self.client.cmdVelocityWorld(np.zeros(3), yawRate=0)
+        # self.client.cmdVelocityWorld(np.zeros(3), yawRate=0)
         self.client.land(targetHeight=0.04, duration=LAND_DURATION)
         self.timeHelper.sleep(LAND_DURATION)
     
 
-    def set_new_velocity_command(self, vx, vy, vz):    
+    def set_new_velocity_command(self, vx, vy, vz, k=None):    
         if self.should_do_emergency_landing:
             print("set_new_velocity_command(): sending 0's because self.should_do_emergency_landing")
-            self.client.cmdVelocityWorld(np.zeros(3), yawRate=0)
-        k = 0.15
+            # self.client.cmdVelocityWorld(np.zeros(3), yawRate=0)
+            return
+        
+        # Default - used for haptic control
+        if k is None:
+            k = 0.15
+
         self.client.cmdVelocityWorld(k*np.array([vx, vy, vz]), yawRate=0)
 
     def do_emergency_landing(self):
-        print("in do_emergency_landing()")
+        # print("do_emergency_landing() | in fn")
+        # print("do_emergency_landing() | returning - this function isn't working well")
+        return
+        
         self.should_do_emergency_landing = True
         self.should_kill_threads = True
         self.client.cmdVelocityWorld(np.zeros(3), yawRate=0)
-        self.client.stop()
-        exit()
-    
+        # self.client.stop() # error: 'AttributeError: 'Crazyflie' object has no attribute 'stopService''
+        print("do_emergency_landing() | sending cmdStop()")
+        self.client.cmdStop()
+        sleep(2.5)
+        print("do_emergency_landing() | setting emergency_landing_is_complete to True")
+        self.emergency_landing_is_complete = True
+        self.diaganol_track_tracker.shutdown()
+        self.should_kill_threads = True
 
 
     # TODO: have this change the stiffness for moving to the reference point instead of direct force
     def get_feedback(self) -> POS_TYPE:
+    
+        # return (0, 0, 0), (0, 0, 0)
         
         if self.should_do_emergency_landing:
+            if self.emergency_landing_is_complete:
+                print("get_feedback() | should_do_emergency_landing and emergency_landing_is_complete so exiting")
+                exit()
             print("get_feedback(): sending 0's because self.should_do_emergency_landing")
             return (0, 0, 0), (0, 0, 0)
         
-        return (0, 0, 0), (0, 0, 0)
-
+        
         pos = self.client.position()
         vel = self.vel
 
@@ -475,6 +504,5 @@ class CrazyflieController:
         force_sum = summed_vecs(forces)
         stiffness_sum = summed_vecs(stiffnesses)    
         
-        # print(pp_vec_str(force_sum))
         return force_sum, stiffness_sum
 

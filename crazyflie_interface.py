@@ -43,8 +43,8 @@ while True:
     try:
         vy, vz, vx = struct.unpack('fff', data)
     except Exception as e: # struct.error is not catching "struct.error: unpack requires a buffer of 12 bytes"
-        print(f"Caught struct error: {e}")
-        print("Exiting")
+        print(f"crazyflie_interface.py | Caught struct error: {e}")
+        print("crazyflie_interface.py | Exiting")
         cfc.safe_exit()
         exit()
     
@@ -61,7 +61,7 @@ while True:
         if i % 250 == 0:
             mean_dt = sum(loop_dts)/len(loop_dts)
             hz = 1 / mean_dt 
-            print(f"Interface loop running at {round(hz, 2)} hz ({round(1000*mean_dt, 4)} ms per iteration)")
+            # print(f"Interface loop running at {round(hz, 2)} hz ({round(1000*mean_dt, 4)} ms per iteration)")
  
         
 
