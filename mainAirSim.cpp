@@ -266,7 +266,7 @@ hduVector3Dd force_on_device(hduVector3Dd pos){
     hduVector3Dd forceVec(0, 0, 0);
     forceVec[Y] = GRAVITY_COMPENSATION;
     const auto device_to_reference = pos - kReferencePoint;
-    const double kXzForceScale = 0.075;
+    const double kXzForceScale = 0.025;
     const double kYForceScale = 0.05;
     
     // No feedback
@@ -276,11 +276,11 @@ hduVector3Dd force_on_device(hduVector3Dd pos){
     // Approach 1 - direct force control
     const double kXzForceFeedbackScale = 1.0;
     const auto force_feedback = kXzForceFeedbackScale * feedback;
-    forceVec[X] = (-kXzForceScale * device_to_reference[X]) + force_feedback[0];
-    forceVec[Z] = (-kXzForceScale * device_to_reference[Z]) + force_feedback[1];
+    forceVec[X] = (-(kXzForceScale + stiffness[X]) * device_to_reference[X]) + force_feedback[0];
+    forceVec[Z] = (-(kXzForceScale + stiffness[Z] ) * device_to_reference[Z]) + force_feedback[1];
     counter += 1;
     if (counter % 100 == 0){
-        cout << forceVec << "\t" << feedback <<  endl;
+        cout << forceVec << "\t" << feedback << "\t" << pos <<  endl;
     }
 
     // approach 2 - force 
