@@ -158,7 +158,7 @@ class DynamicObstacle(Obstacle):
 
 class TrashCanObstacle(Obstacle):
     
-    TRASH_CAN_POSITION = np.array((2.0, 1.0))
+    TRASH_CAN_POSITION = np.array((1.8, -1.0))
     TRASH_CAN_RADIUS = 0.30
 
     def repulsion_vec(self, drone_pos: np.ndarray, vel: np.ndarray) -> POS_TYPE:
@@ -174,8 +174,10 @@ class TrashCanObstacle(Obstacle):
         repulsion_magnitude = min(math.pow(10, scale_term*(padding - d)), MAX_FORCE_FEEDBACK)
         repulsion_vec = delta / d * repulsion_magnitude
         # print(round(d, 4), "\t", repulsion_magnitude, "\t delta: ", delta)
-        a = -0.145
-        b = 0.1
+        # a = -0.145
+        # b = 0.1
+        a = -0.305
+        b = 0.25
         stiffness = max(0, a * d + b)
         return vec_vicon_to_t3d(repulsion_vec[0], repulsion_vec[1], 0), (stiffness, stiffness, stiffness), d
 

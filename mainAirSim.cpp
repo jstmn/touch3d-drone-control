@@ -194,7 +194,7 @@ void displayFunction(void)
  
     // Create the force vector.
     // hduVector3Dd velocity_control_vector = -200.0 * force_on_device(state.position);
-    hduVector3Dd velocity_control_vector = velocity_control(state.position);
+    hduVector3Dd velocity_control_vector = 1.075 * velocity_control(state.position);
     hduVector3Dd graphical_velocity_control_vector = 50.0 * velocity_control_vector;
 
     // pack the velocity as one packet
@@ -276,11 +276,11 @@ hduVector3Dd force_on_device(hduVector3Dd pos){
     // Approach 1 - direct force control
     const double kXzForceFeedbackScale = 1.0;
     const auto force_feedback = kXzForceFeedbackScale * feedback;
-    forceVec[X] = (-(kXzForceScale + stiffness[X]) * device_to_reference[X]) + force_feedback[0];
-    forceVec[Z] = (-(kXzForceScale + stiffness[Z] ) * device_to_reference[Z]) + force_feedback[1];
+    forceVec[X] = (-(kXzForceScale + stiffness[X]) * device_to_reference[X]) + force_feedback[X];
+    forceVec[Z] = (-(kXzForceScale + stiffness[Z] ) * device_to_reference[Z]) + force_feedback[Z];
     counter += 1;
     if (counter % 100 == 0){
-        cout << forceVec << "\t" << feedback << "\t" << pos <<  endl;
+        cout << pos << "\t" << feedback << "\t" << forceVec <<  endl;
     }
 
     // approach 2 - force 
